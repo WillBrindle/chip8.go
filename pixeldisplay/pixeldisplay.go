@@ -39,7 +39,8 @@ func (pd *PixelDisplay) Closed() bool {
 }
 
 func (pd *PixelDisplay) Update(pixels *[64][32]uint8, dirty *[64][32]bool) {
-	// Clear our image drawer each time. Note: Don't clear the screen
+	// Clear our image drawer each time. Note: Don't clear the screen. This means we're only drawing the changes each time rather than
+	// redrawing everything.
 	pd.imd.Clear()
 
 	for x, px := range *dirty {
