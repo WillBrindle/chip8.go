@@ -49,7 +49,8 @@ type Chip8 struct {
 	registers      [16]uint8
 	stack          [16]uint16
 	screen         [64][32]uint8 // We could more efficiently use just 8 ints for the width but using a separate int per pixel keeps things relatively simple
-	memoryRegister uint16        // Refered as 'I' in documentation
+	dirty          [64][32]bool
+	memoryRegister uint16 // Refered as 'I' in documentation
 	programCounter uint16
 	stackPointer   int8
 	delayTimer     uint8
@@ -153,12 +154,16 @@ func (c8 *Chip8) drawSprite(register1 uint16, register2 uint16, nibble uint16) {
 				pixelSet = uint8(1)
 			}
 
+			x2 := x + uint8(j)%64
+			y2 := (y + uint8(i)) % 32
+
 			if pixelSet != 0 {
 				// A collision occured so set to 1
-				if c8.screen[(x+uint8(j))%64][(y+uint8(i))%32] != 0 {
+				if c8.screen[x2][y2] != 0 {
 					c8.registers[0xF] = 1
 				}
-				c8.screen[(x+uint8(j))%64][(y+uint8(i))%32] ^= pixelSet
+				c8.screen[x2][y2] ^= pixelSet
+				c8.dirty[x2][y2] = true
 			}
 		}
 	}
@@ -325,8 +330,11 @@ func (c8 *Chip8) copyRegister(register1 uint16, register2 uint16) {
 func (c8 *Chip8) Tick() error {
 	instruction, err := c8.readInstruction()
 
-	// TODO: in future we'll want this to bubble up but exiting here is fine for now
+	// Reset dirty flags
+	c8.dirty = [64][32]bool{}
+
 	if err != nil {
+		// TODO: let the error be handled and logged higher up
 		log.Println(err)
 		c8.Pause()
 		return err
@@ -428,4 +436,8 @@ func (c8 *Chip8) Pause() {
 
 func (c8 *Chip8) GetScreen() *[64][32]uint8 {
 	return &c8.screen
+}
+
+func (c8 *Chip8) GetDirtyFlags() *[64][32]bool {
+	return &c8.dirty
 }

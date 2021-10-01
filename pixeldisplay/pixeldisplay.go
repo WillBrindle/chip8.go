@@ -38,27 +38,31 @@ func (pd *PixelDisplay) Closed() bool {
 	return pd.win.Closed()
 }
 
-func (pd *PixelDisplay) Update(pixels *[64][32]uint8) {
-	// TODO: we can do this much more efficiently and just draw what's changed instead by keeping track of 'dirty' pixels
+func (pd *PixelDisplay) Update(pixels *[64][32]uint8, dirty *[64][32]bool) {
+	// Clear our image drawer each time. Note: Don't clear the screen
 	pd.imd.Clear()
-	pd.imd.Color = colornames.White
 
-	for x, px := range *pixels {
-		for y, enabled := range px {
-			if enabled > 0 {
+	for x, px := range *dirty {
+		for y, isDirty := range px {
+			// If this pixel has changed redraw it
+			if isDirty {
+				if pixels[x][y] > 0 {
+					pd.imd.Color = colornames.White
+				} else {
+					pd.imd.Color = colornames.Black
+				}
 				pd.imd.Push(pixel.V(float64(x)*pd.scale, float64(31-y)*pd.scale), pixel.V(float64(x+1)*pd.scale, float64(31-y+1)*pd.scale))
 				pd.imd.Rectangle(0)
 			}
 		}
 	}
 
-	pd.win.Clear(colornames.Black)
 	pd.imd.Draw(pd.win)
 	pd.win.Update()
 }
 
 func (pd *PixelDisplay) KeyDown(key uint8) bool {
-	// Should use a map, obviously
+	// TODO: Should use a map, obviously
 	if key == 0x1 {
 		return pd.win.Pressed(pixelgl.Key1)
 	}
