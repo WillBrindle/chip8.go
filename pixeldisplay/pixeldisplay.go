@@ -8,15 +8,14 @@ import (
 )
 
 type PixelDisplay struct {
-	scale  float64
-	win    *pixelgl.Window
-	imd    *imdraw.IMDraw
-	pixels [64][32]uint8 // We could more efficiently use just 8 ints for the width but using a separate int per pixel keeps things relatively simple
+	scale float64
+	win   *pixelgl.Window
+	imd   *imdraw.IMDraw
 }
 
 func New(scale float64) *PixelDisplay {
 	cfg := pixelgl.WindowConfig{
-		Title:  "Pixel Rocks!",
+		Title:  "Chip8.go",
 		Bounds: pixel.R(0, 0, 64*scale, 32*scale),
 	}
 
@@ -39,12 +38,12 @@ func (pd *PixelDisplay) Closed() bool {
 	return pd.win.Closed()
 }
 
-func (pd *PixelDisplay) Update() {
+func (pd *PixelDisplay) Update(pixels *[64][32]uint8) {
 	// TODO: we can do this much more efficiently and just draw what's changed instead by keeping track of 'dirty' pixels
 	pd.imd.Clear()
 	pd.imd.Color = colornames.White
 
-	for x, px := range pd.pixels {
+	for x, px := range *pixels {
 		for y, enabled := range px {
 			if enabled > 0 {
 				pd.imd.Push(pixel.V(float64(x)*pd.scale, float64(31-y)*pd.scale), pixel.V(float64(x+1)*pd.scale, float64(31-y+1)*pd.scale))
@@ -56,29 +55,6 @@ func (pd *PixelDisplay) Update() {
 	pd.win.Clear(colornames.Black)
 	pd.imd.Draw(pd.win)
 	pd.win.Update()
-}
-
-func (pd *PixelDisplay) Draw(x uint8, y uint8, bytes []uint8) bool {
-	collision := false
-
-	for i, b := range bytes {
-		for j := 0; j < 8; j++ {
-			pixelSet := uint8(0)
-
-			if (b & (0x80 >> j)) > 0 {
-				pixelSet = uint8(1)
-			}
-
-			if pixelSet != 0 {
-				if pd.pixels[(x+uint8(j))%64][(y+uint8(i))%32] != 0 {
-					collision = true
-				}
-				pd.pixels[(x+uint8(j))%64][(y+uint8(i))%32] ^= pixelSet
-			}
-		}
-	}
-
-	return collision
 }
 
 func (pd *PixelDisplay) KeyDown(key uint8) bool {

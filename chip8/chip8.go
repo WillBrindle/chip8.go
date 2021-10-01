@@ -48,7 +48,8 @@ type Chip8 struct {
 	memory         [4096]uint8
 	registers      [16]uint8
 	stack          [16]uint16
-	memoryRegister uint16 // Refered as 'I' in documentation
+	screen         [64][32]uint8 // We could more efficiently use just 8 ints for the width but using a separate int per pixel keeps things relatively simple
+	memoryRegister uint16        // Refered as 'I' in documentation
 	programCounter uint16
 	stackPointer   int8
 	delayTimer     uint8
@@ -129,8 +130,6 @@ func (c8 *Chip8) setI(value uint16) {
 }
 
 func (c8 *Chip8) jump(position uint16) {
-	log.Println("Jump to")
-	log.Println(position)
 	c8.programCounter = position
 }
 
@@ -139,16 +138,29 @@ func (c8 *Chip8) jumpV0AndAddr(addr uint16) {
 }
 
 func (c8 *Chip8) drawSprite(register1 uint16, register2 uint16, nibble uint16) {
-	vx := c8.registers[register1]
-	vy := c8.registers[register2]
+	x := c8.registers[register1]
+	y := c8.registers[register2]
 	bytes := c8.memory[c8.memoryRegister : c8.memoryRegister+nibble]
 
-	collision := c8.display.Draw(vx, vy, bytes)
+	// Reset the collision flag to 0
+	c8.registers[0xF] = 0
 
-	if collision {
-		c8.registers[0xF] = 1
-	} else {
-		c8.registers[0xF] = 0
+	for i, b := range bytes {
+		for j := 0; j < 8; j++ {
+			pixelSet := uint8(0)
+
+			if (b & (0x80 >> j)) > 0 {
+				pixelSet = uint8(1)
+			}
+
+			if pixelSet != 0 {
+				// A collision occured so set to 1
+				if c8.screen[(x+uint8(j))%64][(y+uint8(i))%32] != 0 {
+					c8.registers[0xF] = 1
+				}
+				c8.screen[(x+uint8(j))%64][(y+uint8(i))%32] ^= pixelSet
+			}
+		}
 	}
 }
 
@@ -412,4 +424,8 @@ func (c8 *Chip8) IsHalted() bool {
 
 func (c8 *Chip8) Pause() {
 	c8.halted = true
+}
+
+func (c8 *Chip8) GetScreen() *[64][32]uint8 {
+	return &c8.screen
 }

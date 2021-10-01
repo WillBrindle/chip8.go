@@ -1,8 +1,7 @@
 package chip8
 
 type Display interface {
-	Update()
+	Update(*[64][32]uint8)
 	Closed() bool
-	Draw(x uint8, y uint8, bytes []uint8) bool
 	KeyDown(key uint8) bool
 }

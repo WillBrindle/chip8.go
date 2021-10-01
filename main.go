@@ -16,7 +16,7 @@ func setup() {
 	for !display.Closed() && !computer.IsHalted() {
 		st := time.Now()
 		computer.Tick()
-		display.Update()
+		display.Update(computer.GetScreen())
 
 		tt := time.Since(st)
 
@@ -27,7 +27,7 @@ func setup() {
 
 	// Keep the display running after halting; makes it easier to debug etc
 	for !display.Closed() {
-		display.Update()
+		display.Update(computer.GetScreen())
 	}
 }
 
