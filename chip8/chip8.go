@@ -8,7 +8,8 @@ import (
 	"strconv"
 )
 
-var Fonts = []uint8{
+// Letters loaded in from memory as per the chip8 spec
+var Fonts = [...]uint8{
 	// 0
 	0xF0, 0x90, 0x90, 0x90, 0xF0,
 	// 1
@@ -43,6 +44,7 @@ var Fonts = []uint8{
 	0xF0, 0x80, 0xF0, 0x80, 0x80,
 }
 
+// Represents a Chip8 CPU
 type Chip8 struct {
 	display        Display
 	memory         [4096]uint8
@@ -58,6 +60,9 @@ type Chip8 struct {
 	halted         bool
 }
 
+// New creates a new Chip8 CPU.
+// It takes in a display which is responsible for all IO, such as keyboard input and rendering to the screen. The CPU is agnostic to the IO allowing it to
+// be implemented in different ways (sdl, pixel, html canvas, mocked for testing etc)
 func New(display Display) *Chip8 {
 	// put fonts into memory
 	memory := [4096]uint8{}
@@ -74,6 +79,7 @@ func New(display Display) *Chip8 {
 	return &chip8
 }
 
+// parseArguments will get the list of arguments for a given instruction in the form of an array
 func parseArguments(arguments []InstructionArgument, val uint16) []uint16 {
 	result := []uint16{}
 
@@ -84,6 +90,8 @@ func parseArguments(arguments []InstructionArgument, val uint16) []uint16 {
 	return result
 }
 
+// Converts an instruction bytecode into an instruciton. An instruction allows us to write cleaner code based around an enum instead of based on an arbitary
+// number being passed around.
 func parseInstruction(val uint16) (*Instruction, error) {
 	for _, v := range Instructions {
 		if val&v.Mask == v.Match {
@@ -98,6 +106,8 @@ func parseInstruction(val uint16) (*Instruction, error) {
 	return nil, errors.New("Unhandled Instruction 0x" + strconv.FormatInt(int64(val), 16))
 }
 
+// Loads a ROM in from a file.
+// Will return an error if the file could not be loaded (for example it doesn't exist).
 func (c8 *Chip8) LoadROM(rom string) error {
 	bytes, err := ioutil.ReadFile(rom)
 	if err != nil {
@@ -108,15 +118,18 @@ func (c8 *Chip8) LoadROM(rom string) error {
 	return nil
 }
 
+// Loads a file in directly from a byte array.
 func (c8 *Chip8) LoadFromMemory(data []uint8) error {
 	copy(c8.memory[0x200:], data[:])
 	return nil
 }
 
+// next moves onto the next instruction
 func (c8 *Chip8) next() {
 	c8.programCounter += 2
 }
 
+// Read the current instruction from the program counter
 func (c8 *Chip8) readInstruction() (*Instruction, error) {
 	val := (uint16(c8.memory[c8.programCounter]) << 8) | uint16(c8.memory[c8.programCounter+1])
 	return parseInstruction(val)
@@ -198,6 +211,10 @@ func (c8 *Chip8) readRegisterRange(num uint16) {
 }
 
 func (c8 *Chip8) setLocationToFont(register uint16) {
+	value := uint16(c8.registers[register])
+	if value > 0xF {
+		panic("Font location out of bounds")
+	}
 	c8.memoryRegister = uint16(c8.registers[register]) * 5
 }
 
@@ -255,6 +272,17 @@ func (c8 *Chip8) skipIfKeyPressed(register uint16, keyPressed bool) {
 	if c8.display.KeyDown(c8.registers[register]) == keyPressed {
 		c8.programCounter += 2
 	}
+}
+
+func (c8 *Chip8) waitForKey(register uint16) bool {
+	for i := uint8(0); i < 16; i++ {
+		if c8.display.KeyDown(i) {
+			c8.registers[register] = i
+			return true
+		}
+	}
+
+	return false
 }
 
 func (c8 *Chip8) and(register1 uint16, register2 uint16) {
@@ -334,7 +362,6 @@ func (c8 *Chip8) Tick() error {
 	c8.dirty = [64][32]bool{}
 
 	if err != nil {
-		// TODO: let the error be handled and logged higher up
 		log.Println(err)
 		c8.Pause()
 		return err
@@ -410,6 +437,8 @@ func (c8 *Chip8) Tick() error {
 		goToNextInstruction = false
 	case CmdAddToI:
 		c8.addToI(instruction.Arguments[0])
+	case CmdWaitForKey:
+		goToNextInstruction = c8.waitForKey(instruction.Arguments[0])
 	}
 
 	if c8.delayTimer > 0 {

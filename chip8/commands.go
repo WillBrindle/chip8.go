@@ -4,38 +4,39 @@ type Command int16
 
 const (
 	CmdUndefined Command = iota
-	CmdClear
-	CmdReturn
-	CmdJump
+	CmdAddToRegister
+	CmdAdd
+	CmdAddToI
+	CmdAnd
 	CmdCall
-	CmdSetRegister
-	CmdSetI
-	CmdDisplaySprite
 	CmdCallSubRoutine
-	CmdStoreBCD
+	CmdCopyRegister
+	CmdClear
+	CmdDisplaySprite
+	CmdGetDelayTimer
+	CmdJump
+	CmdJumpV0Addr
+	CmdOr
+	CmdRandom
 	CmdReadMemoryRange
 	CmdReadRegisterRange
-	CmdSetIToFont
-	CmdAddToRegister
+	CmdReturn
 	CmdSetDelayTimer
+	CmdSetI
+	CmdSetIToFont
+	CmdSetRegister
 	CmdSetSoundTimer
-	CmdGetDelayTimer
+	CmdShiftLeft
+	CmdShiftRight
 	CmdSkipIfEqual
-	CmdSkipIfNotEqual
 	CmdSkipIfEqualRegister
-	CmdSkipIfNotEqualRegister
-	CmdRandom
 	CmdSkipIfKeyPressed
+	CmdSkipIfNotEqual
+	CmdSkipIfNotEqualRegister
 	CmdSkipIfKeyNotPressed
-	CmdAnd
-	CmdOr
-	CmdXOr
-	CmdAdd
+	CmdStoreBCD
 	CmdSub
 	CmdSubN
-	CmdCopyRegister
-	CmdShiftRight
-	CmdShiftLeft
-	CmdJumpV0Addr
-	CmdAddToI
+	CmdWaitForKey
+	CmdXOr
 )

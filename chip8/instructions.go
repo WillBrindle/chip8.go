@@ -234,6 +234,14 @@ var Instructions = []InstructionDefinition{
 		},
 	},
 	{
+		Command: CmdWaitForKey,
+		Mask:    0xF0FF,
+		Match:   0xF00A,
+		Arguments: []InstructionArgument{
+			{Mask: 0x0F00, Shift: 8},
+		},
+	},
+	{
 		Command: CmdSetDelayTimer,
 		Mask:    0xF0FF,
 		Match:   0xF015,

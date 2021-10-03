@@ -13,6 +13,30 @@ type PixelDisplay struct {
 	imd   *imdraw.IMDraw
 }
 
+// Keypad:
+// 1 2 3 4
+// Q W E R
+// A S D F
+// Z X C V
+var Keys = map[uint8]pixelgl.Button{
+	0x1: pixelgl.Key1,
+	0x2: pixelgl.Key2,
+	0x3: pixelgl.Key3,
+	0xC: pixelgl.Key4,
+	0x4: pixelgl.KeyQ,
+	0x5: pixelgl.KeyW,
+	0x6: pixelgl.KeyE,
+	0xD: pixelgl.KeyR,
+	0x7: pixelgl.KeyA,
+	0x8: pixelgl.KeyS,
+	0x9: pixelgl.KeyD,
+	0xE: pixelgl.KeyF,
+	0xA: pixelgl.KeyZ,
+	0x0: pixelgl.KeyX,
+	0xB: pixelgl.KeyC,
+	0xF: pixelgl.KeyV,
+}
+
 func New(scale float64) *PixelDisplay {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Chip8.go",
@@ -63,54 +87,5 @@ func (pd *PixelDisplay) Update(pixels *[64][32]uint8, dirty *[64][32]bool) {
 }
 
 func (pd *PixelDisplay) KeyDown(key uint8) bool {
-	// TODO: Should use a map, obviously
-	if key == 0x1 {
-		return pd.win.Pressed(pixelgl.Key1)
-	}
-	if key == 0x2 {
-		return pd.win.Pressed(pixelgl.Key2)
-	}
-	if key == 0x3 {
-		return pd.win.Pressed(pixelgl.Key3)
-	}
-	if key == 0xC {
-		return pd.win.Pressed(pixelgl.Key4)
-	}
-	if key == 0x4 {
-		return pd.win.Pressed(pixelgl.KeyQ)
-	}
-	if key == 0x5 {
-		return pd.win.Pressed(pixelgl.KeyW)
-	}
-	if key == 0x6 {
-		return pd.win.Pressed(pixelgl.KeyE)
-	}
-	if key == 0xD {
-		return pd.win.Pressed(pixelgl.KeyR)
-	}
-	if key == 0x7 {
-		return pd.win.Pressed(pixelgl.KeyA)
-	}
-	if key == 0x8 {
-		return pd.win.Pressed(pixelgl.KeyS)
-	}
-	if key == 0x9 {
-		return pd.win.Pressed(pixelgl.KeyD)
-	}
-	if key == 0xE {
-		return pd.win.Pressed(pixelgl.KeyF)
-	}
-	if key == 0xA {
-		return pd.win.Pressed(pixelgl.KeyZ)
-	}
-	if key == 0x0 {
-		return pd.win.Pressed(pixelgl.KeyX)
-	}
-	if key == 0xB {
-		return pd.win.Pressed(pixelgl.KeyC)
-	}
-	if key == 0xF {
-		return pd.win.Pressed(pixelgl.KeyV)
-	}
-	return false
+	return pd.win.Pressed(Keys[key])
 }

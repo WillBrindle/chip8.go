@@ -11,7 +11,8 @@ import (
 func setup() {
 	display := pixeldisplay.New(8)
 	computer := chip8.New(display)
-	computer.LoadROM("test_opcode.ch8")
+	// computer.LoadROM("test_opcode.ch8")
+	computer.LoadROM("pong.rom")
 
 	for !display.Closed() && !computer.IsHalted() {
 		st := time.Now()
