@@ -7,7 +7,7 @@ import (
 func TestRunOpCodeProgram(t *testing.T) {
 	display := MockDisplay{}
 	chip8 := New(&display)
-	chip8.LoadROM("test_opcode.ch8")
+	chip8.LoadROM("../roms/test_opcode.ch8")
 
 	var err error = nil
 	// Limit this to prevent getting stuck if our code is bad
